@@ -174,16 +174,19 @@ func targetToAddr(target string) (*net.TCPAddr, error) {
 		var err error
 		addr, err := net.ResolveTCPAddr("tcp", target)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't parse dst address: %v", err)
+			return nil, fmt.Errorf("failed to parse dst address: %v", err)
 		}
 		return addr, nil
 	}
 	// try to find port by pid then, connect to local
 	pid, err := strconv.Atoi(target)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't parse PID: %v", err)
+		return nil, fmt.Errorf("failed to parse PID: %v", err)
 	}
 	port, err := internal.GetPort(pid)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get port for PID %d: %v", pid, err)
+	}
 	addr, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:"+port)
 	return addr, nil
 }
@@ -191,7 +194,7 @@ func targetToAddr(target string) (*net.TCPAddr, error) {
 func cmd(addr net.TCPAddr, c byte, params ...byte) ([]byte, error) {
 	conn, err := cmdLazy(addr, c, params...)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get port by PID: %v", err)
+		return nil, fmt.Errorf("failed to get port by PID: %v", err)
 	}
 
 	all, err := ioutil.ReadAll(conn)
